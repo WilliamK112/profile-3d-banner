@@ -1,0 +1,38 @@
+name: Update Approved 3D Contribution Banner
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 08:15 America/Chicago (13:15 UTC; may shift with DST)
+    - cron: "15 13 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SVG renderer
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+
+      - name: Update approved banner in place
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/update-approved-3d-banner.py --overwrite-approved
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md assets/blue-gold-3d-contrib-v32.svg assets/blue-gold-3d-contrib-v32.png
+          git diff --cached --quiet || git commit -m "chore: update approved 3d contribution banner"
+          git push
