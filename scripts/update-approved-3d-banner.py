@@ -221,13 +221,22 @@ def render_png(svg_path: Path, png_path: Path) -> None:
 
 
 def update_readme_total(total: int) -> None:
+    if not README_PATH.exists():
+        print(f"README not found at {README_PATH}, skipping alt-text update")
+        return
+
     content = README_PATH.read_text()
-    content = re.sub(
+    updated = re.sub(
         r'alt="\d+ contributions in the last year \(shape locked\)"',
         f'alt="{total} contributions in the last year (shape locked)"',
         content,
     )
-    README_PATH.write_text(content)
+
+    if updated == content:
+        print("README found but no matching alt text pattern, skipping README update")
+        return
+
+    README_PATH.write_text(updated)
 
 
 def reveal(path: Path) -> None:
